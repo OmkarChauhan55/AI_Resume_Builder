@@ -1,6 +1,9 @@
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import Resume from "../models/resume.model.js";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+dotenv.config();
 
 const start = async (req, res) => {
   return res
@@ -11,7 +14,6 @@ const start = async (req, res) => {
 const createResume = async (req, res) => {
   const { title, themeColor } = req.body;
 
-  // Validate that the title and themeColor are provided
   if (!title || !themeColor) {
     return res
       .status(400)
@@ -19,11 +21,10 @@ const createResume = async (req, res) => {
   }
 
   try {
-    // Create a new resume with empty fields for other attributes
     const resume = await Resume.create({
       title,
       themeColor,
-      user: req.user._id, // Set the user ID from the authenticated user
+      user: req.user._id,
       firstName: "",
       lastName: "",
       email: "",
@@ -32,7 +33,7 @@ const createResume = async (req, res) => {
       phone: "",
       address: "",
       experience: [],
-      education: [], // Initialize as an empty array
+      education: [],
       skills: [],
       projects: [],
     });
@@ -72,14 +73,12 @@ const getResume = async (req, res) => {
       return res.status(400).json(new ApiError(400, "Resume ID is required."));
     }
 
-    // Find the resume by ID
     const resume = await Resume.findById(id);
 
     if (!resume) {
       return res.status(404).json(new ApiError(404, "Resume not found."));
     }
 
-    // Check if the resume belongs to the current user
     if (resume.user.toString() !== req.user._id.toString()) {
       return res
         .status(403)
@@ -104,12 +103,11 @@ const updateResume = async (req, res) => {
   const id = req.query.id;
 
   try {
-    // Find and update the resume with the provided ID and user ID
     console.log("Database update request started");
     const updatedResume = await Resume.findOneAndUpdate(
       { _id: id, user: req.user._id },
-      { $set: req.body, $currentDate: { updatedAt: true } }, // Set updatedAt to current date
-      { new: true } // Return the modified document
+      { $set: req.body, $currentDate: { updatedAt: true } },
+      { new: true }
     );
 
     if (!updatedResume) {
@@ -132,15 +130,12 @@ const updateResume = async (req, res) => {
         new ApiError(500, "Internal Server Error", [error.message], error.stack)
       );
   }
-
-  // return res.status(200).json({ message: "Hello World" });
 };
 
 const removeResume = async (req, res) => {
   const id = req.query.id;
 
   try {
-    // Check if the resume exists and belongs to the current user
     const resume = await Resume.findOneAndDelete({
       _id: id,
       user: req.user._id,
@@ -169,6 +164,72 @@ const removeResume = async (req, res) => {
   }
 };
 
+/* 🧠 UPDATED FUNCTION: Gemini AI Summary Generator */
+const generateSummary = async (req, res) => {
+  try {
+    const { text } = req.body;
+
+    if (!text || text.trim() === "") {
+      return res
+        .status(400)
+        .json(new ApiError(400, "Text is required to generate summary."));
+    }
+
+    console.log("🧠 Sending text to Gemini API...");
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Summarize this professionally for a resume:\n\n${text}`,
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Gemini API Error Response:", data);
+      return res
+        .status(response.status)
+        .json(
+          new ApiError(
+            response.status,
+            data.error?.message || "Gemini API Error",
+            [],
+            data
+          )
+        );
+    }
+
+    const summary =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No summary generated.";
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, { summary }, "Summary generated successfully")
+      );
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    return res
+      .status(500)
+      .json(
+        new ApiError(500, "Internal Server Error", [error.message], error.stack)
+      );
+  }
+};
 
 export {
   start,
@@ -177,4 +238,5 @@ export {
   getResume,
   updateResume,
   removeResume,
+  generateSummary,
 };
