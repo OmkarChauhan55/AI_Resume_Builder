@@ -6,7 +6,6 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { addResumeData } from "@/features/resume/resumeFeatures";
 import { useParams } from "react-router-dom";
-import { updateResumeData } from "@/Services/GlobalApi";
 import { updateThisResume } from "@/Services/resumeAPI";
 import { toast } from "sonner";
 
@@ -20,6 +19,7 @@ const formFields = {
   currentlyWorking: "",
   workSummary: "",
 };
+
 function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
   const [experienceList, setExperienceList] = React.useState(
     resumeInfo?.experience || []
@@ -47,9 +47,7 @@ function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
 
   const removeExperience = (index) => {
     const list = [...experienceList];
-    const newList = list.filter((item, i) => {
-      if (i !== index) return true;
-    });
+    const newList = list.filter((item, i) => i !== index);
     setExperienceList(newList);
   };
 
@@ -58,47 +56,54 @@ function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
     enanbledPrev(false);
     const { name, value } = e.target;
     const list = [...experienceList];
-    const newListData = {
+    list[index] = {
       ...list[index],
       [name]: value,
     };
-    list[index] = newListData;
     setExperienceList(list);
   };
 
   const handleRichTextEditor = (value, name, index) => {
+    enanbledNext(false);
+    enanbledPrev(false);
     const list = [...experienceList];
-    const newListData = {
+    list[index] = {
       ...list[index],
       [name]: value,
     };
-    list[index] = newListData;
     setExperienceList(list);
   };
 
+  // ✅ Summary.jsx jaisa exact same pattern
   const onSave = () => {
-    setLoading(true);
-    const data = {
-      data: {
-        experience: experienceList,
-      },
-    };
-    if (resume_id) {
-      console.log("Started Updating Experience");
-      updateThisResume(resume_id, data)
-        .then((data) => {
-          toast("Resume Updated", "success");
-        })
-        .catch((error) => {
-          toast("Error updating resume", `${error.message}`);
-        })
-        .finally(() => {
-          enanbledNext(true);
-          enanbledPrev(true);
-          setLoading(false);
-        });
+    if (!resume_id) {
+      toast("Resume ID not found", { type: "error" });
+      return;
     }
+
+    setLoading(true);
+    console.log("Started Updating Experience");
+    console.log("Data being sent:", { data: { experience: experienceList } });
+
+    const data = { data: { experience: experienceList } };
+
+    updateThisResume(resume_id, data)
+      .then(() => {
+        console.log("✅ Experience Updated Successfully");
+        toast("Resume Updated", { type: "success" });
+        enanbledNext(true);
+        enanbledPrev(true);
+      })
+      .catch((error) => {
+        console.error("❌ Error updating experience:", error);
+        toast("Error updating resume", { description: error.message });
+      })
+      .finally(() => {
+        console.log("🏁 Loading set to false");
+        setLoading(false);
+      });
   };
+
   return (
     <div>
       <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
@@ -112,23 +117,20 @@ function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
                 <Button
                   variant="outline"
                   className="text-red-500"
-                  onClick={(e) => {
-                    removeExperience(index);
-                  }}
+                  onClick={() => removeExperience(index)}
+                  type="button"
                 >
                   <Trash2 />
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg">
                 <div>
-                  <label className="text-xs">Position Tittle</label>
+                  <label className="text-xs">Position Title</label>
                   <Input
                     type="text"
                     name="title"
-                    value={experience?.title}
-                    onChange={(e) => {
-                      handleChange(e, index);
-                    }}
+                    value={experience?.title || ""}
+                    onChange={(e) => handleChange(e, index)}
                   />
                 </div>
                 <div>
@@ -136,10 +138,8 @@ function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
                   <Input
                     type="text"
                     name="companyName"
-                    value={experience?.companyName}
-                    onChange={(e) => {
-                      handleChange(e, index);
-                    }}
+                    value={experience?.companyName || ""}
+                    onChange={(e) => handleChange(e, index)}
                   />
                 </div>
                 <div>
@@ -147,10 +147,8 @@ function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
                   <Input
                     type="text"
                     name="city"
-                    value={experience?.city}
-                    onChange={(e) => {
-                      handleChange(e, index);
-                    }}
+                    value={experience?.city || ""}
+                    onChange={(e) => handleChange(e, index)}
                   />
                 </div>
                 <div>
@@ -158,21 +156,17 @@ function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
                   <Input
                     type="text"
                     name="state"
-                    value={experience?.state}
-                    onChange={(e) => {
-                      handleChange(e, index);
-                    }}
+                    value={experience?.state || ""}
+                    onChange={(e) => handleChange(e, index)}
                   />
                 </div>
                 <div>
-                  <label className="text-xs">StartDate</label>
+                  <label className="text-xs">Start Date</label>
                   <Input
                     type="date"
                     name="startDate"
-                    value={experience?.startDate}
-                    onChange={(e) => {
-                      handleChange(e, index);
-                    }}
+                    value={experience?.startDate || ""}
+                    onChange={(e) => handleChange(e, index)}
                   />
                 </div>
                 <div>
@@ -180,18 +174,16 @@ function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
                   <Input
                     type="date"
                     name="endDate"
-                    value={experience?.endDate}
-                    onChange={(e) => {
-                      handleChange(e, index);
-                    }}
+                    value={experience?.endDate || ""}
+                    onChange={(e) => handleChange(e, index)}
                   />
                 </div>
                 <div className="col-span-2">
                   <RichTextEditor
                     index={index}
                     defaultValue={experience?.workSummary}
-                    onRichTextEditorChange={(event) =>
-                      handleRichTextEditor(event, "workSummary", index)
+                    onRichTextEditorChange={(value) =>
+                      handleRichTextEditor(value, "workSummary", index)
                     }
                     resumeInfo={resumeInfo}
                   />
@@ -205,12 +197,12 @@ function Experience({ resumeInfo, enanbledNext, enanbledPrev }) {
             onClick={addExperience}
             variant="outline"
             className="text-primary"
+            type="button"
           >
-            + Add {resumeInfo?.experience?.length > 0 ? "more" : null}{" "}
-            Experience
+            + Add {experienceList?.length > 0 ? "more" : null} Experience
           </Button>
-          <Button onClick={onSave}>
-            {loading ? <LoaderCircle className=" animate-spin" /> : "Save"}
+          <Button onClick={onSave} disabled={loading} type="button">
+            {loading ? <LoaderCircle className="animate-spin" /> : "Save"}
           </Button>
         </div>
       </div>

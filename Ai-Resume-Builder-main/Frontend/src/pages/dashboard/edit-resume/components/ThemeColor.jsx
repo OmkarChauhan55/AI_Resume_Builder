@@ -18,27 +18,39 @@ import { updateThisResume } from "@/Services/resumeAPI";
 function ThemeColor({ resumeInfo }) {
   const dispatch = useDispatch();
   const colors = [
-    "#FF5733",
-    "#33FF57",
-    "#3357FF",
-    "#FF33A1",
-    "#A133FF",
-    "#33FFA1",
-    "#FF7133",
-    "#71FF33",
-    "#7133FF",
-    "#FF3371",
-    "#33FF71",
-    "#3371FF",
-    "#A1FF33",
-    "#33A1FF",
-    "#FF5733",
-    "#5733FF",
-    "#33FF5A",
-    "#5A33FF",
-    "#FF335A",
-    "#335AFF",
-  ];
+  "#FF5733", // orange-red
+  "#33FF57", // lime-green
+  "#3357FF", // blue
+  "#FF33A1", // pink
+  "#A133FF", // violet
+  "#33FFA1", // aqua-green
+  "#FF7133", // orange
+  "#71FF33", // yellow-green
+  "#7133FF", // indigo
+  "#FF3371", // rose
+  "#33FF71", // light-green
+  "#3371FF", // sky-blue
+  "#A1FF33", // chartreuse
+  "#33A1FF", // light-blue
+  "#33FF5A", // mint-green
+  "#5A33FF", // deep-purple
+  "#FF335A", // bright-pink
+  "#33FFF5", // cyan
+  "#FFD433", // golden-yellow
+  "#FF8C33", // amber-orange
+  "#33FFCC", // turquoise
+  "#FF33F6", // magenta
+  "#9D33FF", // dark-violet
+  "#33FF99", // neon-green
+  "#FF3333", // pure red
+  "#33B8FF", // azure
+  "#FFB833", // golden-orange
+  "#33FFDA", // teal-blue
+  "#FF33C4", // hot pink
+  "#6EFF33" , // lime
+  "#000000ea"
+];
+
 
   const [selectedColor, setSelectedColor] = useState();
   const { resume_id } = useParams();

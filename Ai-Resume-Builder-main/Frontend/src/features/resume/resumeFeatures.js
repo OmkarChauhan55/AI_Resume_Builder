@@ -1,8 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// ❌ DELETE YOUR OLD initialState
+// ✅ REPLACE WITH THIS:
 const initialState = {
-  resumeData:""
+  resumeData: {},
+  template: 1, // Template selector ke liye
 };
+
 export const resumeSlice = createSlice({
   name: "editResume",
   initialState,
@@ -10,10 +14,17 @@ export const resumeSlice = createSlice({
     addResumeData: (state, action) => {
       state.resumeData = action.payload;
     },
+    // ✅ YEH ADD KARO (reducer ke andar, comma lagake)
+    updateResumeData: (state, action) => {
+      state.resumeData = { ...state.resumeData, ...action.payload };
+    },
+    setTemplate: (state, action) => {
+      state.template = action.payload;
+    },
   },
 });
 
-// Action creators are generated for each case reducer function
-export const { addResumeData } = resumeSlice.actions;
+// ✅ EXPORT UPDATE KARO
+export const { addResumeData, updateResumeData, setTemplate } = resumeSlice.actions;
 
 export default resumeSlice.reducer;
